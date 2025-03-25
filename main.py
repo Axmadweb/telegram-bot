@@ -12,7 +12,8 @@ TOKEN = "8133713557:AAHrt3h8wsPWrQ6zqk7dyJoesC4_UoWykUo"
 bot = telebot.TeleBot(TOKEN)
 bot.set_my_description("🤖 Salom! Men mavzular uchun maqola botiman.\n"
                        "📝 /start tugmasini bosing!\n"
-                       "🔹 Matn kiriting va men maqola chiqaraman")
+                       "🔹 menu uchun /menu buyrug'ini bering.\n"
+                       "🔹 Matn kiriting va men maqola chiqaraman!")
 
 # Portni olish (Render platformasi uchun)
 PORT = os.getenv("PORT", 5000)  # Standart port 5000 bo'lishi mumkin
