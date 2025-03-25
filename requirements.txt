@@ -1,6 +1,7 @@
 wikipedia
 pyTelegramBotAPI
 requests
-requests gunicorn
+requests
+gunicorn
 Flask
 gunicorn
