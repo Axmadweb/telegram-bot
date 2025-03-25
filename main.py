@@ -70,5 +70,5 @@ def webhook():
 # Flaskni ishga tushirish
 if __name__ == "__main__":
     bot.remove_webhook()
-    bot.set_webhook(url="https://your-app-name.onrender.com/webhook")  # Render’da URLni moslashtiring
+    bot.set_webhook(url="https://telegram-bot-8unt.onrender.com/webhook")
     app.run(host='0.0.0.0', port=PORT)
