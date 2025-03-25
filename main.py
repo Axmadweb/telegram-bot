@@ -50,9 +50,8 @@ def echo_all(message):
             out = wikipedia.summary(message.text)
             bot.send_message(message.chat.id, f"{out}")
         except wikipedia.exceptions.DisambiguationError as e:
-            bot.send_message(message.chat.id, f"😔 Afsuski, bir nechta maqolalar topildi. Iltimos, aniqroq matn kiriting.\n\n{e.options}")
-        except wikipedia.exceptions.HTTPTimeoutError:
-            bot.send_message(message.chat.id, "🌐 Internet aloqasi o'rnatishda muammo yuz berdi. Iltimos, qayta urinib ko'ring.")
+            options = "\n".join(e.options)
+            bot.send_message(message.chat.id, f"😔 Afsuski, bir nechta maqolalar topildi. Iltimos, aniqroq matn kiriting.\n\n{options}")
         except wikipedia.exceptions.RedirectError:
             bot.send_message(message.chat.id, "😔 Maqola topilmadi. Iltimos, qayta urinib ko'ring.")
         except Exception as e:
@@ -67,8 +66,12 @@ def webhook():
     bot.process_new_updates([update])
     return "!", 200
 
-# Flaskni ishga tushirish
+
+# 🔹 Flaskni ishga tushirish
 if __name__ == "__main__":
-    bot.remove_webhook()
-    bot.set_webhook(url="https://telegram-bot-8unt.onrender.com/webhook")
+    # Webhook'ni to'g'ri sozlash
+    bot.remove_webhook()  # Eski webhook'ni olib tashlash
+    bot.set_webhook(url="https://telegram-bot-8unt.onrender.com/webhook")  # Render platformasida URL'ni moslashtiring
+
+    # Flask serverini ishga tushirish
     app.run(host='0.0.0.0', port=PORT)
