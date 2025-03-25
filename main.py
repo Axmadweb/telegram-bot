@@ -1,7 +1,8 @@
 import wikipedia
-wikipedia.set_lang('uz')
+import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 import telebot
+from flask import Flask, request
 
 # 🔹 Bot tokenini shu yerga kiriting
 TOKEN = "8133713557:AAHrt3h8wsPWrQ6zqk7dyJoesC4_UoWykUo"
@@ -10,6 +11,11 @@ bot.set_my_description("🤖 Salom! Men mavzular uchun maqola botiman.\n"
                        "📝 /start tugmasini bosing!\n"
                        "🔹 Matn kiriting va men maqola chiqaraman")
 
+# Portni olish (Render platformasi uchun)
+PORT = os.getenv("PORT", 5000)
+
+# Flask ilovasini yaratish
+app = Flask(__name__)
 
 # 🔹 Foydalanuvchiga asosiy tugmalarni beruvchi funksiya
 def main_menu():
@@ -54,5 +60,14 @@ def echo_all(message):
 
 
 # 🔹 Botni ishga tushirish
-print("Bot ishga tushdi...")
-bot.polling(none_stop=True)
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "!", 200
+
+if __name__ == "__main__":
+    bot.remove_webhook()
+    bot.set_webhook(url='https://your-app-name.onrender.com/webhook')  # Renderda webhook URLni moslashtiring
+    app.run(host='0.0.0.0', port=PORT)
