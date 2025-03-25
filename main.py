@@ -4,6 +4,9 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemo
 import telebot
 from flask import Flask, request
 
+# Wikipedia tilini O'zbek tiliga o'rnatish
+wikipedia.set_lang('uz')
+
 # 🔹 Bot tokenini shu yerga kiriting
 TOKEN = "8133713557:AAHrt3h8wsPWrQ6zqk7dyJoesC4_UoWykUo"
 bot = telebot.TeleBot(TOKEN)
