@@ -1,93 +1,86 @@
 import wikipedia
-
 import os
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-import telebot
-from flask import Flask, request
+import threading
 import schedule
 import time
 
-# Wikipedia tilini O'zbek tiliga o'rnatish
+from flask import Flask, request
+import telebot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+
+# Wikipedia tilini O'zbek tiliga sozlash
 wikipedia.set_lang('uz')
 
-# 🔹 Bot tokenini shu yerga kiriting
-TOKEN = "8133713557:AAHrt3h8wsPWrQ6zqk7dyJoesC4_UoWykUo"
-bot = telebot.TeleBot(TOKEN)
-bot.set_my_description("🤖 Salom! Men mavzular uchun maqola botiman.\n"
-                       "📝 /start tugmasini bosing!\n"
-                       "🔹 menu uchun /menu buyrug'ini bering.\n"
-                       "🔹 Matn kiriting va men maqola chiqaraman!")
+# Bot tokenini atrof-muhit o'zgaruvchisidan olish
+TOKEN = os.getenv("8133713557:AAHrt3h8wsPWrQ6zqk7dyJoesC4_UoWykUo")
+if not TOKEN:
+    raise ValueError("Bot tokeni yo'q! Iltimos, atrof-muhit o'zgaruvchisida TOKEN ni belgilang.")
 
-# Portni olish (Render platformasi uchun)
-PORT = os.getenv("PORT", 5000)  # Standart port 5000 bo'lishi mumkin
+bot = telebot.TeleBot(TOKEN)
 
 # Flask ilovasini yaratish
 app = Flask(__name__)
 
-# 🔹 Foydalanuvchiga asosiy tugmalarni beruvchi funksiya
+# 🔹 Tugmalarni yaratish
 def main_menu():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(KeyboardButton("📜 Matn kiritish"))
     keyboard.row(KeyboardButton("ℹ️ Ma’lumot"))
     return keyboard
 
-
-# 🔹 /start komandasi uchun handler
+# 🔹 /start komandasi
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.send_message(message.chat.id, "Assalomu alaykum! Men sizning Telegram botingizman! 😊", reply_markup=main_menu())
 
-
-# 🔹 /menu komandasi uchun handler
+# 🔹 /menu komandasi
 @bot.message_handler(commands=['menu'])
 def menu_handler(message):
     bot.send_message(message.chat.id, "Kerakli bo‘limni tanlang:", reply_markup=main_menu())
 
+# 🔹 Kanalga rejalashtirilgan xabarni yuborish
 CHANNEL_USERNAME = "@deom_for_python"
-IMAGE_PATH = "image.png"  # Rasmingizning fayl nomi
-
-bot = telebot.TeleBot(TOKEN)
+IMAGE_PATH = "image.png"
 
 def send_scheduled_message():
     message = """<b>🌙 HAYIT MUBORAK! 🌙</b>\n
 Salom, Quanta oilasi! ⚡\n
 Bugun nafaqat yangi kun, balki yangi imkoniyatlar, yorqin kelajak va mehr ulashish vaqti!\n
 <b>🌙 Hayit ayyomingiz muborak bo‘lsin!</b>\n
-Alloh niyatlaringizni ijobat qilsin, ilm va ijod yo‘lingizda muvaffaqiyatlaringiz yulduzlar kabi porlasin! ✨\n
-💡 Texnologiya, ilm-fan va kreativ dunyoda olg‘a intilayotgan barchangizga cheksiz ilhom, yangi g‘oyalar va muvaffaqiyat tilaymiz!\n
+💡 Texnologiya, ilm-fan va kreativ dunyoda olg‘a intilayotgan barchangizga muvaffaqiyat tilaymiz!\n
 <b>Quanta bilan yorqin kelajakka birga qadam qo‘yaylik! 🚀</b>
 """
     with open(IMAGE_PATH, "rb") as photo:
         bot.send_photo(CHANNEL_USERNAME, photo, caption=message, parse_mode="HTML")
 
-# Har kuni 00:00 da rasm va xabar yuborish
-schedule.every().day.at("22:56").do(send_scheduled_message)
+# Har kuni 00:00 da xabar yuborish
+schedule.every().day.at("23:03").do(send_scheduled_message)
 
-while True:
-    schedule.run_pending()
-    time.sleep(30)
-# 🔹 Matnli xabarlarni qabul qilish
+def schedule_runner():
+    while True:
+        schedule.run_pending()
+        time.sleep(30)
+
+# 🔹 Matnni qabul qilish va Wikipedia'dan ma'lumot olish
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     if message.text == "📜 Matn kiritish":
-        bot.send_message(message.chat.id, f"Matn kiritish' tugmasini bosdingiz. Iltimos, matn kiriting:", reply_markup=ReplyKeyboardRemove())
-
+        bot.send_message(message.chat.id, "Iltimos, matn kiriting:", reply_markup=ReplyKeyboardRemove())
     elif message.text == "ℹ️ Ma’lumot":
-        bot.send_message(message.chat.id, f"Bu bot sizga matn kiritish va ma’lumot olish imkonini beradi.", reply_markup=ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, "Bu bot Wikipedia'dan ma'lumot topib beruvchi bot.", reply_markup=ReplyKeyboardRemove())
     else:
         try:
-            out = wikipedia.summary(message.text)
+            out = wikipedia.summary(message.text, sentences=2)
             bot.send_message(message.chat.id, f"{out}")
         except wikipedia.exceptions.DisambiguationError as e:
-            options = "\n".join(e.options)
-            bot.send_message(message.chat.id, f"😔 Afsuski, bir nechta maqolalar topildi. Iltimos, aniqroq matn kiriting.\n\n{options}")
-        except wikipedia.exceptions.RedirectError:
-            bot.send_message(message.chat.id, "😔 Maqola topilmadi. Iltimos, qayta urinib ko'ring.")
+            options = "\n".join(e.options[:5])
+            bot.send_message(message.chat.id, f"😔 Bir nechta maqolalar topildi. Aniqroq matn kiriting:\n{options}")
+        except wikipedia.exceptions.PageError:
+            bot.send_message(message.chat.id, "😔 Maqola topilmadi.")
         except Exception as e:
-            bot.send_message(message.chat.id, f"😔😔😔 Afsuski Bunday maqola topilmadi. Xatolik: {str(e)}")
+            bot.send_message(message.chat.id, f"😔 Xatolik: {str(e)}")
 
-
-# 🔹 Webhook endpointi
+# 🔹 Webhook uchun endpoint
 @app.route("/webhook", methods=["POST"])
 def webhook():
     json_str = request.get_data().decode("UTF-8")
@@ -95,12 +88,13 @@ def webhook():
     bot.process_new_updates([update])
     return "!", 200
 
-
-# 🔹 Flaskni ishga tushirish
+# 🔹 Flask serverini ishga tushirish
 if __name__ == "__main__":
-    # Webhook'ni to'g'ri sozlash
-    bot.remove_webhook()  # Eski webhook'ni olib tashlash
-    bot.set_webhook(url="https://telegram-bot-8unt.onrender.com/webhook")  # Render platformasida URL'ni moslashtiring
+    bot.remove_webhook()
+    bot.set_webhook(url="https://telegram-bot-8unt.onrender.com/webhook")
+
+    # Jadval bajaruvchi threadni ishga tushirish
+    threading.Thread(target=schedule_runner, daemon=True).start()
 
     # Flask serverini ishga tushirish
-    app.run(host='0.0.0.0', port=PORT)
+    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
