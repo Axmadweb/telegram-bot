@@ -61,7 +61,7 @@ Alloh niyatlaringizni ijobat qilsin, ilm va ijod yo‘lingizda muvaffaqiyatlarin
         bot.send_photo(CHANNEL_USERNAME, photo, caption=message, parse_mode="HTML")
 
 # Har kuni 00:00 da rasm va xabar yuborish
-schedule.every().day.at("22:47").do(send_scheduled_message)
+schedule.every().day.at("22:56").do(send_scheduled_message)
 
 while True:
     schedule.run_pending()
