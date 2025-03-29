@@ -3,6 +3,8 @@ import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 import telebot
 from flask import Flask, request
+import schedule
+import time
 
 # Wikipedia tilini O'zbek tiliga o'rnatish
 wikipedia.set_lang('uz')
@@ -40,7 +42,29 @@ def send_welcome(message):
 def menu_handler(message):
     bot.send_message(message.chat.id, "Kerakli bo‘limni tanlang:", reply_markup=main_menu())
 
+CHANNEL_USERNAME = "@deom_for_python"
+IMAGE_PATH = "image.png"  # Rasmingizning fayl nomi
 
+bot = telebot.TeleBot(TOKEN)
+
+def send_scheduled_message():
+    message = """<b>🌙 HAYIT MUBORAK! 🌙</b>\n
+Salom, Quanta oilasi! ⚡\n
+Bugun nafaqat yangi kun, balki yangi imkoniyatlar, yorqin kelajak va mehr ulashish vaqti!\n
+<b>🌙 Hayit ayyomingiz muborak bo‘lsin!</b>\n
+Alloh niyatlaringizni ijobat qilsin, ilm va ijod yo‘lingizda muvaffaqiyatlaringiz yulduzlar kabi porlasin! ✨\n
+💡 Texnologiya, ilm-fan va kreativ dunyoda olg‘a intilayotgan barchangizga cheksiz ilhom, yangi g‘oyalar va muvaffaqiyat tilaymiz!\n
+<b>Quanta bilan yorqin kelajakka birga qadam qo‘yaylik! 🚀</b>
+"""
+    with open(IMAGE_PATH, "rb") as photo:
+        bot.send_photo(CHANNEL_USERNAME, photo, caption=message, parse_mode="HTML")
+
+# Har kuni 00:00 da rasm va xabar yuborish
+schedule.every().day.at("22:47").do(send_scheduled_message)
+
+while True:
+    schedule.run_pending()
+    time.sleep(30)
 # 🔹 Matnli xabarlarni qabul qilish
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
