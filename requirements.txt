@@ -6,4 +6,3 @@ gunicorn
 Flask
 gunicorn
 schedule
-threading
