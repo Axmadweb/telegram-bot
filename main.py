@@ -54,7 +54,7 @@ Bugun nafaqat yangi kun, balki yangi imkoniyatlar, yorqin kelajak va mehr ulashi
         bot.send_photo(CHANNEL_USERNAME, photo, caption=message, parse_mode="HTML")
 
 # Har kuni 00:00 da xabar yuborish
-schedule.every().day.at("23:09").do(send_scheduled_message)
+schedule.every().day.at("23:13").do(send_scheduled_message)
 
 def schedule_runner():
     while True:
